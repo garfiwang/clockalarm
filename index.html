@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="一個精美、精準且具現代設計感的網頁倒數計時器。支援多種合成鬧鐘音效、深淺色主題切換與桌面通知功能。">
+  <title>Premium Timer | 精準倒數計時器</title>
+  
+  <!-- 載入 Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..700;1,300..700&family=Outfit:wght@100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+  
+  <!-- 引入外部 CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 背景動態光暈效果 -->
+  <div class="glow-bg" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- 頂部列：標題與主題切換 -->
+    <header class="app-header">
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <h1>Premium Timer</h1>
+      </div>
+      <div class="header-actions">
+        <button id="fullscreen-toggle" class="icon-btn" aria-label="全螢幕切換">
+          <!-- 進入全螢幕圖示 -->
+          <svg class="fullscreen-enter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+          </svg>
+          <!-- 退出全螢幕圖示 -->
+          <svg class="fullscreen-exit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 14h6v6m10-6h-6v6M4 10h6V4m10 6h-6V4"></path>
+          </svg>
+        </button>
+        <button id="theme-toggle" class="icon-btn" aria-label="切換主題">
+          <!-- 太陽圖示 -->
+          <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <!-- 月亮圖示 -->
+          <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <!-- 計時器顯示卡片 -->
+      <section class="card timer-card" aria-labelledby="timer-heading">
+        <h2 id="timer-heading" class="sr-only">計時顯示面板</h2>
+        
+        <!-- SVG 圓形進度條 -->
+        <div class="timer-display-wrapper">
+          <svg class="progress-ring" viewBox="0 0 220 220">
+            <!-- 背景灰色圓圈 -->
+            <circle class="progress-ring__bg" cx="110" cy="110" r="95" stroke-width="8"></circle>
+            <!-- 前景彩色進度圈 -->
+            <circle id="progress-bar" class="progress-ring__bar" cx="110" cy="110" r="95" stroke-width="8" stroke-dasharray="596.9" stroke-dashoffset="0"></circle>
+          </svg>
+          
+          <!-- 文字顯示 -->
+          <div class="timer-text-container">
+            <div id="timer-time" class="timer-time">05:00</div>
+            <div id="timer-state" class="timer-state">準備就緒</div>
+          </div>
+        </div>
+
+        <!-- 主要控制按鈕 -->
+        <div class="timer-controls">
+          <button id="btn-play-pause" class="btn btn-primary" aria-label="開始倒數">
+            <svg class="icon play-icon" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <svg class="icon pause-icon" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            <span id="play-pause-text">開始</span>
+          </button>
+          
+          <button id="btn-reset" class="btn btn-secondary" aria-label="重設計時器">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+            </svg>
+            <span>重設</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 設定卡片 -->
+      <section class="card settings-card" aria-labelledby="settings-heading">
+        <h2 id="settings-heading">設定計時器</h2>
+
+        <!-- 快速選擇快捷鍵 -->
+        <div class="settings-group">
+          <label class="group-title">快速預設時間</label>
+          <div class="presets-grid">
+            <button class="preset-btn" data-minutes="1">1 分</button>
+            <button class="preset-btn" data-minutes="5">5 分</button>
+            <button class="preset-btn" data-minutes="10">10 分</button>
+            <button class="preset-btn active" data-minutes="15">15 分</button>
+            <button class="preset-btn" data-minutes="25">25 分 (番茄)</button>
+            <button class="preset-btn" data-minutes="50">50 分</button>
+          </div>
+        </div>
+
+        <!-- 自訂時間輸入 -->
+        <div class="settings-group">
+          <div class="slider-header">
+            <label for="time-slider" class="group-title">自訂時間 (分鐘)</label>
+            <span id="slider-val" class="slider-value">15 分鐘</span>
+          </div>
+          <input type="range" id="time-slider" min="1" max="120" value="15" class="slider-input" aria-valuemin="1" aria-valuemax="120" aria-valuenow="15">
+          
+          <div class="time-inputs-row">
+            <div class="input-box">
+              <label for="input-min">分</label>
+              <input type="number" id="input-min" min="0" max="999" value="15">
+            </div>
+            <div class="input-colon" aria-hidden="true">:</div>
+            <div class="input-box">
+              <label for="input-sec">秒</label>
+              <input type="number" id="input-sec" min="0" max="59" value="0">
+            </div>
+            <button id="btn-apply-custom" class="btn btn-small">設定時間</button>
+          </div>
+        </div>
+
+        <!-- 鬧鐘聲音設定 -->
+        <div class="settings-group">
+          <label for="sound-select" class="group-title">提醒音效</label>
+          <div class="sound-control-row">
+            <div class="select-wrapper">
+              <select id="sound-select">
+                <option value="digital">經典電子音 (Beep)</option>
+                <option value="chime" selected>和弦風鈴 (Chime)</option>
+                <option value="retro">復古警報 (Retro)</option>
+                <option value="none">靜音 (Silent)</option>
+              </select>
+            </div>
+            <button id="btn-test-sound" class="btn btn-secondary btn-small" aria-label="測試音效">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+              </svg>
+              <span>測試</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 音量與靜音 -->
+        <div class="settings-group">
+          <div class="volume-row">
+            <button id="btn-mute" class="icon-btn" aria-label="切換靜音">
+              <!-- 有聲音圖示 -->
+              <svg class="vol-on-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+              </svg>
+              <!-- 靜音圖示 -->
+              <svg class="vol-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <line x1="23" y1="9" x2="17" y2="15"></line>
+                <line x1="17" y1="9" x2="23" y2="15"></line>
+              </svg>
+            </button>
+            <input type="range" id="volume-slider" min="0" max="100" value="80" class="slider-input volume-slider" aria-label="音量大小">
+            <span id="volume-val" class="volume-value">80%</span>
+          </div>
+        </div>
+
+        <!-- 桌面通知設定 -->
+        <div class="settings-group notification-group">
+          <div class="notification-toggle">
+            <div class="toggle-text">
+              <span class="toggle-title">啟用瀏覽器桌面通知</span>
+              <span class="toggle-desc">時間到時在桌面顯示提示（即使瀏覽器被最小化）</span>
+            </div>
+            <button id="btn-notification-toggle" class="btn btn-secondary btn-small" data-enabled="false">
+              請求權限
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>&copy; 2026 Premium Timer. All Rights Reserved.</p>
+    </footer>
+  </div>
+
+  <!-- 引入 JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>

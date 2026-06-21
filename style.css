@@ -1,0 +1,765 @@
+/* CSS 設計系統與自訂屬性 */
+:root {
+  /* 字型定義 */
+  --font-sans: 'Outfit', 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* 時間插值模式變數 (Oklch / Oklab 漸層相容性) */
+  --in-oklch: ;
+  --in-oklab: ;
+
+  /* 淺色模式變數 (預設：白底、黑字、紅重點色) */
+  --bg-gradient-start: #ffffff;
+  --bg-gradient-end: #f4f4f5;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.06);
+  
+  --text-primary: #000000;
+  --text-secondary: #52525b;
+  
+  --color-primary: #ef4444;         /* 鮮紅色 */
+  --color-primary-rgb: 239, 68, 68;
+  --color-primary-hover: #dc2626;   /* 深紅色 */
+  --color-primary-glow: rgba(239, 68, 68, 0.25);
+  
+  --color-secondary: rgba(0, 0, 0, 0.04);
+  --color-secondary-hover: rgba(0, 0, 0, 0.08);
+  --color-secondary-text: #000000;
+  
+  --color-danger: #ef4444;
+  --color-success: #10b981;
+  
+  --progress-ring-bg: rgba(0, 0, 0, 0.04);
+  
+  /* 動態背景氣泡色 */
+  --blob-1-color: rgba(239, 68, 68, 0.04);
+  --blob-2-color: rgba(244, 63, 94, 0.02);
+
+  --transition-speed: 0.3s;
+}
+
+/* 檢測並使用 Oklch 漸層 */
+@supports (linear-gradient(in oklch, white, black)) {
+  :root {
+    --in-oklch: in oklch;
+    --in-oklab: in oklab;
+  }
+}
+
+/* 深色模式變數 (切換：黑底、白字、紅重點色) */
+body.dark-theme {
+  --bg-gradient-start: #0a0a0a;
+  --bg-gradient-end: #121212;
+  --card-bg: rgba(18, 18, 18, 0.75);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  
+  --color-primary: #ef4444;
+  --color-primary-rgb: 239, 68, 68;
+  --color-primary-hover: #dc2626;
+  --color-primary-glow: rgba(239, 68, 68, 0.4);
+  
+  --color-secondary: rgba(255, 255, 255, 0.06);
+  --color-secondary-hover: rgba(255, 255, 255, 0.12);
+  --color-secondary-text: #ffffff;
+  
+  --progress-ring-bg: rgba(255, 255, 255, 0.05);
+  
+  --blob-1-color: rgba(239, 68, 68, 0.08);
+  --blob-2-color: rgba(244, 63, 94, 0.06);
+}
+
+/* 全域重設與基礎樣式 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(135deg var(--in-oklch), var(--bg-gradient-start), var(--bg-gradient-end));
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+  position: relative;
+  transition: background var(--transition-speed), color var(--transition-speed);
+}
+
+/* 動態光暈背景 */
+.glow-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: float 20s infinite alternate ease-in-out;
+  transition: background-color var(--transition-speed);
+}
+
+.blob-1 {
+  width: 500px;
+  height: 500px;
+  background-color: var(--blob-1-color);
+  top: -10%;
+  left: -10%;
+  animation-delay: 0s;
+}
+
+.blob-2 {
+  width: 600px;
+  height: 600px;
+  background-color: var(--blob-2-color);
+  bottom: -10%;
+  right: -10%;
+  animation-delay: -5s;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(10%, 15%) scale(1.1);
+  }
+  100% {
+    transform: translate(-5%, -5%) scale(0.95);
+  }
+}
+
+/* 主容器 */
+.app-container {
+  width: 100%;
+  max-width: 900px;
+  padding: 2rem 1.5rem;
+  z-index: 1;
+}
+
+/* 頂部列 */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--color-primary);
+}
+
+.brand h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, var(--color-primary-hover), var(--color-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 輔助讀屏器 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 毛玻璃卡片通用樣式 */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  box-shadow: var(--card-shadow);
+  padding: 2rem;
+  transition: background var(--transition-speed), border var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+/* 網頁主排版 */
+.app-main {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+  .app-container {
+    padding: 1rem;
+  }
+}
+
+/* ==========================================================================
+   計時器卡片 (Timer Card)
+   ========================================================================== */
+.timer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 480px;
+}
+
+.timer-display-wrapper {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  margin-bottom: 2.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.progress-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* 讓計時圓環從最上方開始倒數 */
+}
+
+.progress-ring__bg {
+  fill: transparent;
+  stroke: var(--progress-ring-bg);
+  transition: stroke var(--transition-speed);
+}
+
+.progress-ring__bar {
+  fill: transparent;
+  stroke: var(--color-primary);
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.1s linear, stroke var(--transition-speed);
+  filter: drop-shadow(0 0 8px var(--color-primary-glow));
+}
+
+.timer-text-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+}
+
+.timer-time {
+  font-family: var(--font-mono);
+  font-size: 3.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums; /* 防止等寬字型跳動 */
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  transition: color var(--transition-speed);
+}
+
+.timer-state {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color var(--transition-speed);
+}
+
+/* 狀態特定的視覺表現 */
+body.timer-running .progress-ring__bar {
+  filter: drop-shadow(0 0 12px var(--color-primary-glow));
+}
+
+body.timer-paused .progress-ring__bar {
+  stroke: var(--text-secondary);
+  filter: none;
+}
+
+body.timer-finished .progress-ring__bar {
+  stroke: var(--color-danger);
+  filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.6));
+  animation: pulse 1s infinite alternate ease-in-out;
+}
+
+body.timer-finished .timer-time {
+  color: var(--color-danger);
+  animation: shake 0.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, -1px); }
+}
+
+/* 主要控制按鈕 */
+.timer-controls {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  max-width: 280px;
+}
+
+/* ==========================================================================
+   設定卡片 (Settings Card)
+   ========================================================================== */
+.settings-card h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 1.5rem;
+}
+
+.settings-group:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.group-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 預設按鈕 */
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.preset-btn {
+  background: var(--color-secondary);
+  color: var(--text-primary);
+  border: 1px solid transparent;
+  padding: 0.6rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+  background: var(--color-secondary-hover);
+}
+
+.preset-btn.active {
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 0 12px var(--color-primary-glow);
+}
+
+/* 自訂滑桿 */
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.slider-value {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.slider-input {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-secondary);
+  outline: none;
+  cursor: pointer;
+  margin: 0.5rem 0;
+}
+
+.slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 8px var(--color-primary-glow);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* 時間數字輸入列 */
+.time-inputs-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.input-box {
+  display: flex;
+  align-items: center;
+  background: var(--color-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 0.4rem 0.75rem;
+  flex: 1;
+}
+
+.input-box label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-right: 0.5rem;
+}
+
+.input-box input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 600;
+  width: 100%;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+
+.input-box input::-webkit-outer-spin-button,
+.input-box input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input-colon {
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+/* 聲音控制列 */
+.sound-control-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.select-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+select {
+  width: 100%;
+  appearance: none;
+  background: var(--color-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 0.6rem 2rem 0.6rem 1rem;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+/* 下拉選單三角形 */
+.select-wrapper::after {
+  content: "";
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 5px 4px 0;
+  border-style: solid;
+  border-color: var(--text-secondary) transparent transparent;
+  pointer-events: none;
+}
+
+/* 音量控制 */
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.volume-slider {
+  flex: 1;
+}
+
+.volume-value {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* 桌面通知區 */
+.notification-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.toggle-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.toggle-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   按鈕系統 (Buttons)
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.8rem 1.5rem;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  flex: 1;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--color-primary-glow);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  box-shadow: 0 6px 20px var(--color-primary-glow);
+}
+
+.btn-secondary {
+  background: var(--color-secondary);
+  color: var(--color-secondary-text);
+  border: 1px solid var(--card-border);
+}
+
+.btn-secondary:hover {
+  background: var(--color-secondary-hover);
+}
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 10px;
+  flex: none;
+}
+
+/* 圖示 */
+.icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* 控制播放暫停按鈕的圖示切換 */
+.pause-icon {
+  display: none;
+}
+
+body.timer-running .play-icon {
+  display: none;
+}
+
+body.timer-running .pause-icon {
+  display: block;
+}
+
+/* 圖示按鈕 (Mute, Theme) */
+.icon-btn {
+  background: var(--color-secondary);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.icon-btn:hover {
+  background: var(--color-secondary-hover);
+  color: var(--color-primary-hover);
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* 主題圖示切換 (預設淺色：顯示月亮圖示；深色：顯示太陽圖示) */
+.sun-icon {
+  display: none;
+}
+
+body.dark-theme .sun-icon {
+  display: block;
+}
+
+body.dark-theme .moon-icon {
+  display: none;
+}
+
+/* 靜音圖示切換 */
+.vol-off-icon {
+  display: none;
+}
+
+body.audio-muted .vol-on-icon {
+  display: none;
+}
+
+body.audio-muted .vol-off-icon {
+  display: block;
+}
+
+/* 全螢幕圖示切換 */
+.fullscreen-exit-icon {
+  display: none;
+}
+
+body.fullscreen-active .fullscreen-enter-icon {
+  display: none;
+}
+
+body.fullscreen-active .fullscreen-exit-icon {
+  display: block;
+}
+
+/* ==========================================================================
+   全螢幕沉浸式排版樣式
+   ========================================================================== */
+body.fullscreen-active {
+  background: var(--bg-gradient-start); /* 移除漸層減輕全螢幕效能負擔 */
+}
+
+/* 在全螢幕狀態下，隱藏設定卡片，讓計時卡片放大置中 */
+body.fullscreen-active .settings-card {
+  display: none;
+}
+
+body.fullscreen-active .app-main {
+  grid-template-columns: 1fr;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+body.fullscreen-active .timer-card {
+  min-height: 75vh;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.fullscreen-active .timer-display-wrapper {
+  width: min(480px, 80vw);
+  height: min(480px, 80vw);
+  margin-bottom: 3rem;
+}
+
+body.fullscreen-active .timer-time {
+  font-size: min(8.5rem, 16vw); /* 使用響應式字型大小，最大可達 8.5rem (約 136px) 或螢幕寬度的 16% */
+}
+
+body.fullscreen-active .timer-state {
+  font-size: 1.35rem;
+  letter-spacing: 0.1em;
+}
+
+body.fullscreen-active .app-footer {
+  display: none; /* 隱藏頁尾以達極簡效果 */
+}
+
+/* 頁尾 */
+.app-footer {
+  text-align: center;
+  margin-top: 3rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
