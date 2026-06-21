@@ -2,7 +2,7 @@
 
 一個精美、精準且具備現代設計感的網頁倒數計時器。
 
-👉 **線上預覽與使用**：直接在瀏覽器中開啟 `index.html`，或使用本地伺服器運行即可。
+👉 **線上預覽與使用**：[https://garfiwang.github.io/clockalarm/](https://garfiwang.github.io/clockalarm/)
 
 ---
 
